@@ -383,7 +383,20 @@ class Game:
         if pressed_keys[K_ESCAPE] or pressed_keys[K_q]:
             self.on_cleanup()
 
+        # asdw key presses
         if pressed_keys[K_w] or pressed_keys[K_a] or pressed_keys[K_f] or pressed_keys[K_d]:
+            if random.randint(1, 9) > 7:
+                self._combat_chk = True
+                self._enemy_num = random.randint(1, self._enemy_max)
+                self._enemy_guy = Enemy(self._enemy_num)
+                self.random_translation()
+                time.sleep(0.25)
+            else:
+                self._pathing = max((self._pathing + 1) % (self._corridor_count + 1), 1)
+                time.sleep(0.25)
+
+        # arrow key presses
+        if pressed_keys[K_UP] or pressed_keys[K_DOWN] or pressed_keys[K_LEFT] or pressed_keys[K_RIGHT]:
             if random.randint(1, 9) > 7:
                 self._combat_chk = True
                 self._enemy_num = random.randint(1, self._enemy_max)
