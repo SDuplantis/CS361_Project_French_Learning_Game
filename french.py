@@ -1,58 +1,48 @@
 
-import random
-import math
+# import random
+# import math
+
+import socket
+import subprocess
+
 
 def french_dictionary(level):
     """
-    Recieves a user level and then returns a random french word along with its translation and two incorrect ones
+    Receives a user level and then returns a random French word along with its translation and two incorrect ones
     :param level: User level
     :return: tuple -> (french_word, translated, wrong_one, wrong_two)
     """
-    level_one_to_five = [
-        ('Pomme', 'Apple'),
-        ('Chien', 'Dog'),
-        ('Chat', 'Cat'),
-        ('Manger', 'To Eat'),
-        ('Rester', 'To Stay'),
-        ('Marcher', 'To Walk'),
-        ('Gauche', 'Left'),
-        ('Droite', 'Right'),
-        ('Verte', 'Green'),
-        ('Rouge', 'Red'),
-        ('Un', 'A or One'),
-        ('Deux', 'Two'),
-        ('Trois', 'Three'),
-        ('Quartre', 'Four')
-    ]
 
-    # getting length of list to dynamically pick random number
-    level_one_length = len(level_one_to_five)
-    # picking random number to get random word
-    rng = random.randint(0, level_one_length - 1)
+    # # location of microservice script
+    # micro_service = 'C:/Users/Steven/Documents/01 School (OSU)/CS 361/Assignments/TBA_MS/tba_MS.py'
+    # # Calling on microservice to start
+    # subprocess.Popen(['python', micro_service])
 
-    # French word and translation based on rng
-    french_word = level_one_to_five[rng][0]
-    translated = level_one_to_five[rng][1]
+    # Set up connection
+    my_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    host = '127.0.0.1'
+    port = 5544
+    my_server.connect((host, port))
 
-    # list of chosen random numbers so can pick unique ones...
-    chosen = [rng]
+    # determining message to send to microservice
+    if level <= 5:
+        french_lvl = 'level_one_to_five'
+    elif level <= 10:
+        french_lvl = 'level_six_to_ten'
+    else:
+        french_lvl = 'level_eleven_to_fifteen'
 
-    # loop until we have 3 unique randos in chosen
-    while len(chosen) < 3:
-        new_rng = random.randint(0, level_one_length - 1)
-        if new_rng not in chosen:
-            chosen.append(new_rng)
+    # sending level text to microservice
+    my_server.send(french_lvl.encode())
 
-    # Voila! our incorrect translations
-    wrong_one = level_one_to_five[chosen[1]][1]
-    wrong_two = level_one_to_five[chosen[2]][1]
+    french_binary = my_server.recv(4096)
+    french_decode = french_binary.decode('utf-8')
+    french_list = eval(french_decode)
+    print(french_list)
+    french_word, translated, wrong_one, wrong_two = french_list
+
+    print(french_word, translated, wrong_one, wrong_two)
+    # closing connection
+    my_server.close()
 
     return french_word, translated, wrong_one, wrong_two
-
-# user_input = 0
-# while user_input != 1:
-#     user_input = int(input("Enter 0 to get french stuff. 1 to quit.  "))
-#     if user_input == 0:
-#         print(french_dictionary(1))
-
-

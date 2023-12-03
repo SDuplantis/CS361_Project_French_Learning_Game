@@ -6,6 +6,7 @@ import time
 import random
 from enemy import Enemy
 from french import french_dictionary
+from user_info import user_level
 
 # global variables to move
 screen_width = 800
@@ -130,6 +131,11 @@ class Game:
             self._game_intro_chk = True
             time.sleep(0.25)
 
+        # Load menu keystroke
+        if pressed_keys[K_m]:
+            self.stop_music()
+            time.sleep(0.25)
+
         if pygame.mouse.get_pressed()[0]:
             mouse_pos = pygame.mouse.get_pos()
 
@@ -209,21 +215,14 @@ class Game:
 
         # display background and button
         self._display_surf.blit(self._background_main_menu, (0, 0))
-        # self._display_surf.blit(self._button_new_game, (250, 250))
-        # self._display_surf.blit(self._button_continue, (250, 350))
-        # self._display_surf.blit(self._button_quit_game, (250, 450))
 
         title_text = ''
 
         # setting up font objects
         text_01 = self._font.render(str(title_text), True, black)
-        # text_02 = self._font_small.render(str(ui_text_02), True, black)
-        # text_03 = self._font_small.render(str(ui_text_03), True, black)
 
         # # creating display surfaces for text
         self._display_surf.blit(text_01, (111, 25))
-        # self._display_surf.blit(text_02, (45, 230))
-        # self._display_surf.blit(text_03, (30, 130))
 
         # updates the screen with all the commands up to this point
         pygame.display.update()
@@ -276,8 +275,11 @@ class Game:
         # setting up font objects
         text_01 = self._font.render(str(user_xp_total), True, black)
 
+        text_02 = self._font.render('Current level: ' + str(self._user_level), True, black)
+
         # creating display surfaces for text
         self._display_surf.blit(text_01, (200, 300))
+        self._display_surf.blit(text_02, (250, 350))
 
         # updates the screen with all the commands up to this point
         pygame.display.update()
@@ -293,12 +295,15 @@ class Game:
         if pressed_keys[K_ESCAPE] or pressed_keys[K_q]:
             self.on_cleanup()
 
+        # Logic when user makes a selection
+        # exit combat and enter defeat (if correct selection) and update user xp/level
         if pressed_keys[K_1]:
             if self._correct_answer == 1:
                 self._combat_chk = False
                 self._defeat_chk = True
                 self._user_xp += 10
                 self._xp_anim = 0
+                self._user_level = user_level(self._user_xp)
             else:
                 self.random_translation()
             time.sleep(0.25)
@@ -309,6 +314,7 @@ class Game:
                 self._defeat_chk = True
                 self._user_xp += 10
                 self._xp_anim = 0
+                self._user_level = user_level(self._user_xp)
             else:
                 self.random_translation()
             time.sleep(0.25)
@@ -319,6 +325,7 @@ class Game:
                 self._defeat_chk = True
                 self._user_xp += 10
                 self._xp_anim = 0
+                self._user_level = user_level(self._user_xp)
             else:
                 self.random_translation()
             time.sleep(0.25)
@@ -367,7 +374,7 @@ class Game:
         self._correct_answer = 0
         count = 1
         for item in frencho:
-            print(item, self._translation)
+            # print(item, self._translation)
             if item == self._translation:
                 self._correct_answer = count
             else:
@@ -409,7 +416,7 @@ class Game:
 
     def on_render(self):
         """
-        Handles the draw methods for sprites and score
+        Renders the corridors
         :return:
         """
 
@@ -439,69 +446,63 @@ class Game:
 
     def on_cleanup(self):
 
+        # Create black surface and update screen
         self._display_surf.fill(black)
-
-        # maybe add quit message
-        # self._display_surf.blit(self._quit_mess, (30, 450))
-
-        # update screen
         pygame.display.update()
 
+        # wait and then quit out
         time.sleep(0.25)
         pygame.quit()
         sys.exit()
 
     def on_execute(self):
+        """
+        Method that controls music and which screen user is on
+        return: nothing
+        """
         if self.on_initialization() is False:
             self._running = False
 
+        self.play_music()
+
         # logic for which screen user should be directed to
         while self._running:
+            self.run_events()
             if self._main_menu_chk:
-                for event in pygame.event.get():
-                    self.on_event(event)
                 self.main_menu_loop()
                 self.main_menu_render()
             elif self._load_menu_chk:
-                for event in pygame.event.get():
-                    self.on_event(event)
                 self.load_menu_loop()
                 self.load_menu_render()
             elif self._game_intro_chk:
-                for event in pygame.event.get():
-                    self.on_event(event)
                 self.game_intro()
                 self.game_intro_render()
             elif self._combat_chk:
-                for event in pygame.event.get():
-                    self.on_event(event)
                 self.combat_loop()
                 self.combat_render()
             elif self._defeat_chk:
-                for event in pygame.event.get():
-                    self.on_event(event)
                 self.defeat_loop()
                 self.defeat_render()
             else:
-                for event in pygame.event.get():
-                    self.on_event(event)
                 self.on_loop()
                 self.on_render()
         self.on_cleanup()
 
-    def make_files(self):
+    def run_events(self):
+        # Run all current events
+        for event in pygame.event.get():
+            self.on_event(event)
 
-        # Creating rng txt for rng microservice
-        file = open(save_file, 'w')
-        file.write('')
-        file.close()
+    def play_music(self):
+        # Initializing mixer, loading song, and playing on infinite loop
+        pygame.mixer.init()
+        pygame.mixer.music.load('01_Main_Menu.wav')
+        pygame.mixer.music.play(loops=-1)
+        pygame.mixer.music.set_volume(0.1)
 
-        # creating pic txt for pic microservice
-        file = open(char_file, 'w')
-        file.write('')
-        file.close()
-
-        return
+    def stop_music(self):
+        # Stops all music
+        pygame.mixer.music.stop()
 
 
 if __name__ == "__main__":
